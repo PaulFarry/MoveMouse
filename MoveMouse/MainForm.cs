@@ -40,40 +40,9 @@ namespace MoveMouse
         public MainForm()
         {
             InitializeComponent();
-
             GetCursorPos(out initialPosition);
-
-
-            var assembly = typeof(Program).Assembly;
-            var resources = assembly.GetManifestResourceNames();
-
-            var st = assembly.GetManifestResourceStream("MoveMouse.Homer.base.png")!;
             images = [];
-
-            using (var baseImage = Image.FromStream(st))
-            {
-                using var bmp = new Bitmap(baseImage.Width, baseImage.Height);
-                var blankFrame = new Bitmap(baseImage.Width, baseImage.Height);
-
-                using (var graphics = Graphics.FromImage(blankFrame))
-                {
-                    graphics.DrawImage(baseImage, 0, 0);
-                }
-                images.Add(blankFrame);
-                for (var i = 1; i <= 8; i++)
-                {
-                    var frameName = $"MoveMouse.Homer.frame{i:00}.png";
-                    using var frameImage = assembly.GetManifestResourceStream(frameName)!;
-                    var image = Image.FromStream(frameImage);
-                    var newImage = new Bitmap(baseImage.Width, baseImage.Height);
-                    using (var graphics = Graphics.FromImage(newImage))
-                    {
-                        graphics.DrawImage(baseImage, 0, 0);
-                        graphics.DrawImage(image, 0, 0);
-                    }
-                    images.Add(newImage);
-                }
-            }
+            GenerateAnimationImages();
 
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
             random = Random.Shared;
@@ -88,6 +57,36 @@ namespace MoveMouse
 
 
             Timer.Start();
+        }
+
+        private void GenerateAnimationImages()
+        {
+            var assembly = typeof(Program).Assembly;
+
+            var st = assembly.GetManifestResourceStream("MoveMouse.Homer.base.png")!;
+
+            using var baseImage = Image.FromStream(st);
+            var blankFrame = new Bitmap(baseImage.Width, baseImage.Height);
+            using (var graphics = Graphics.FromImage(blankFrame))
+            {
+                graphics.DrawImage(baseImage, 0, 0);
+            }
+            images.Add(blankFrame);
+
+            for (var i = 1; i <= 8; i++)
+            {
+                var frameName = $"MoveMouse.Homer.frame{i:00}.png";
+                using var frameImage = assembly.GetManifestResourceStream(frameName)!;
+                using var image = Image.FromStream(frameImage);
+
+                var newImage = new Bitmap(baseImage.Width, baseImage.Height);
+                using (var graphics = Graphics.FromImage(newImage))
+                {
+                    graphics.DrawImage(baseImage, 0, 0);
+                    graphics.DrawImage(image, 0, 0);
+                }
+                images.Add(newImage);
+            }
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -171,8 +170,29 @@ namespace MoveMouse
         {
             base.OnActivated(e);
             UpdateScreen();
+            SetWindowStartPosition();
             CurrentX = initialPosition.X;
             CurrentY = initialPosition.Y;
+        }
+
+        private void SetWindowStartPosition()
+        {
+            var newMinY = int.MaxValue;
+            var newMaxY = int.MinValue;
+            var newMinX = int.MaxValue;
+            var newMaxX = int.MinValue;
+            foreach (var s in Screen.AllScreens.Select(x => x.WorkingArea))
+            {
+                newMinY = Math.Min(newMinY, s.Top);
+                newMaxY = Math.Max(newMaxY, s.Bottom);
+                newMinX = Math.Min(newMinX, s.Left);
+                newMaxX = Math.Max(newMaxX, s.Right);
+            }
+
+            var x = random.Next(newMinX, newMaxX - this.Width);
+            var y = random.Next(newMinY, newMaxY - this.Height);
+
+            this.Location = new Point(x, y);
         }
 
         private void SystemEvents_DisplaySettingsChanged(object? sender, EventArgs e)

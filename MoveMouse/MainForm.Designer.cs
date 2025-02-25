@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             pictureOverlay = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureOverlay).BeginInit();
             SuspendLayout();
@@ -48,7 +49,14 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(368, 249);
             Controls.Add(pictureOverlay);
+            DoubleBuffered = true;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "MainForm";
+            ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.Manual;
             Text = "Auto Mouse";
