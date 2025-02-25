@@ -36,6 +36,7 @@ namespace MoveMouse
         private int currentImage = 0;
 
         private List<Image> images;
+        DateTime nextChangeTime;
 
         public MainForm()
         {
@@ -47,14 +48,15 @@ namespace MoveMouse
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
             random = Random.Shared;
 
-            XInc = GetRandom();
-            YInc = GetRandom();
+            XInc = GetRandomIncrement();
+            YInc = GetRandomIncrement();
             Timer = new System.Windows.Forms.Timer
             {
                 Interval = 50
             };
             Timer.Tick += Timer_Tick;
 
+            nextChangeTime = DateTime.Now;
 
             Timer.Start();
         }
@@ -63,7 +65,7 @@ namespace MoveMouse
         {
             var assembly = typeof(Program).Assembly;
 
-            var st = assembly.GetManifestResourceStream("MoveMouse.Homer.base.png")!;
+            using var st = assembly.GetManifestResourceStream("MoveMouse.Homer.base.png")!;
 
             using var baseImage = Image.FromStream(st);
             var blankFrame = new Bitmap(baseImage.Width, baseImage.Height);
@@ -95,7 +97,7 @@ namespace MoveMouse
             CloseApplication();
         }
 
-        private int GetRandom()
+        private int GetRandomIncrement()
         {
             return random.Next(1, 20);
         }
@@ -114,29 +116,50 @@ namespace MoveMouse
                 currentImage = 0;
             }
 
+
+            if (DateTime.Now > nextChangeTime)
+            {
+                var nextChange = TimeSpan.FromMilliseconds(random.Next(2000, 5000));
+                nextChangeTime = DateTime.Now.Add(nextChange);
+
+                var xPositive = random.Next() >= 0.5;
+                var yPositive = random.Next() >= 0.5;
+                var newX = GetRandomIncrement();
+                var newY = GetRandomIncrement();
+                if (!xPositive) newX = -newX;
+                if (!yPositive) newY = -newY;
+
+                XInc = newX;
+                YInc = newY;
+            }
+
+
             CurrentX += XInc;
             CurrentY += YInc;
+
             if (CurrentX > XMax)
             {
                 CurrentX = XMax;
-                XInc = -GetRandom();
+                XInc = -GetRandomIncrement();
             }
             if (CurrentX < XMin)
             {
                 CurrentX = XMin;
-                XInc = GetRandom();
+                XInc = GetRandomIncrement();
             }
             if (CurrentY > YMax)
             {
                 CurrentY = YMax;
-                YInc = -GetRandom();
+                YInc = -GetRandomIncrement();
             }
             if (CurrentY < YMin)
             {
                 CurrentY = YMin;
-                YInc = GetRandom();
+                YInc = GetRandomIncrement();
             }
+
             MoveMouse();
+
             hasStarted = true;
         }
 
