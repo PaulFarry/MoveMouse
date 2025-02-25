@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace MoveMouse
@@ -49,10 +50,8 @@ namespace MoveMouse
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
-            Timer.Stop();
-
             base.OnClosing(e);
+            CloseApplication();
         }
 
         private int GetRandom()
@@ -64,9 +63,8 @@ namespace MoveMouse
             GetCursorPos(out var position);
             if (hasStarted && position.X != CurrentX && position.Y != CurrentY)
             {
-                Timer.Stop();
+                CloseApplication();
             }
-
 
             CurrentX += XInc;
             CurrentY += YInc;
@@ -157,11 +155,18 @@ namespace MoveMouse
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
+            base.OnKeyDown(e);
             if (e.Control && e.Alt && e.Shift)
             {
-                Application.Exit();
+                CloseApplication();
             }
-            base.OnKeyDown(e);
+        }
+
+        private void CloseApplication()
+        {
+            Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
+            Timer.Stop();
+            Application.Exit();
         }
     }
 }
