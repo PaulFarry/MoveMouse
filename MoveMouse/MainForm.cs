@@ -1,12 +1,13 @@
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace MoveMouse
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
 
+        POINT initialPosition;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
@@ -32,9 +33,48 @@ namespace MoveMouse
 
         private System.Windows.Forms.Timer Timer;
 
-        public Form1()
+        private int currentImage = 0;
+
+        private List<Image> images;
+
+        public MainForm()
         {
             InitializeComponent();
+
+            GetCursorPos(out initialPosition);
+
+
+            var assembly = typeof(Program).Assembly;
+            var resources = assembly.GetManifestResourceNames();
+
+            var st = assembly.GetManifestResourceStream("MoveMouse.Homer.base.png")!;
+            images = [];
+
+            using (var baseImage = Image.FromStream(st))
+            {
+                using var bmp = new Bitmap(baseImage.Width, baseImage.Height);
+                var blankFrame = new Bitmap(baseImage.Width, baseImage.Height);
+
+                using (var graphics = Graphics.FromImage(blankFrame))
+                {
+                    graphics.DrawImage(baseImage, 0, 0);
+                }
+                images.Add(blankFrame);
+                for (var i = 1; i <= 8; i++)
+                {
+                    var frameName = $"MoveMouse.Homer.frame{i:00}.png";
+                    using var frameImage = assembly.GetManifestResourceStream(frameName)!;
+                    var image = Image.FromStream(frameImage);
+                    var newImage = new Bitmap(baseImage.Width, baseImage.Height);
+                    using (var graphics = Graphics.FromImage(newImage))
+                    {
+                        graphics.DrawImage(baseImage, 0, 0);
+                        graphics.DrawImage(image, 0, 0);
+                    }
+                    images.Add(newImage);
+                }
+            }
+
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
             random = Random.Shared;
 
@@ -45,6 +85,8 @@ namespace MoveMouse
                 Interval = 50
             };
             Timer.Tick += Timer_Tick;
+
+
             Timer.Start();
         }
 
@@ -64,6 +106,13 @@ namespace MoveMouse
             if (hasStarted && position.X != CurrentX && position.Y != CurrentY)
             {
                 CloseApplication();
+            }
+
+            pictureOverlay.Image = images[currentImage];
+            currentImage++;
+            if (currentImage >= images.Count)
+            {
+                currentImage = 0;
             }
 
             CurrentX += XInc;
@@ -95,36 +144,35 @@ namespace MoveMouse
         private void MoveMouse()
         {
             Input[] inputs =
-[
-    new Input
-    {
-        Type = (int) InputType.Mouse,
-        Union = new InputUnion
-        {
-            mi = new MouseInput
-            {
-                dx = XInc,
-                dy = YInc,
-                dwFlags = (uint)(MouseEventF.Move),
-                dwExtraInfo = GetMessageExtraInfo()
-            }
-        }
-    }
+            [
+                new Input
+                {
+                    Type = (int) InputType.Mouse,
+                    Union = new InputUnion
+                    {
+                        mi = new MouseInput
+                        {
+                            dx = XInc,
+                            dy = YInc,
+                            dwFlags = (uint)(MouseEventF.Move),
+                            dwExtraInfo = GetMessageExtraInfo()
+                        }
+                    }
+                }
+            ];
 
-];
-
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
+            //Don't care for now
+            _ = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
 
             SetCursorPos(CurrentX, CurrentY);
-
         }
 
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
             UpdateScreen();
-            CurrentX = ((XMax - XMin) / 2) + XMin;
-            CurrentY = ((YMax - YMin) / 2) + YMin;
+            CurrentX = initialPosition.X;
+            CurrentY = initialPosition.Y;
         }
 
         private void SystemEvents_DisplaySettingsChanged(object? sender, EventArgs e)
@@ -165,7 +213,9 @@ namespace MoveMouse
         private void CloseApplication()
         {
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
+            Timer.Tick -= Timer_Tick;
             Timer.Stop();
+            SetCursorPos(initialPosition.X, initialPosition.Y);
             Application.Exit();
         }
     }

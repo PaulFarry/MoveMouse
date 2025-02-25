@@ -1,6 +1,6 @@
 ﻿namespace MoveMouse
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,18 +28,35 @@
         /// </summary>
         private void InitializeComponent()
         {
+            pictureOverlay = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)pictureOverlay).BeginInit();
             SuspendLayout();
             // 
-            // Form1
+            // pictureOverlay
+            // 
+            pictureOverlay.BackColor = Color.Transparent;
+            pictureOverlay.Dock = DockStyle.Fill;
+            pictureOverlay.Location = new Point(0, 0);
+            pictureOverlay.Name = "pictureOverlay";
+            pictureOverlay.Size = new Size(368, 249);
+            pictureOverlay.TabIndex = 1;
+            pictureOverlay.TabStop = false;
+            // 
+            // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(375, 207);
-            Name = "Form1";
-            Text = "Form1";
+            ClientSize = new Size(368, 249);
+            Controls.Add(pictureOverlay);
+            Name = "MainForm";
+            SizeGripStyle = SizeGripStyle.Hide;
+            StartPosition = FormStartPosition.Manual;
+            Text = "Auto Mouse";
+            ((System.ComponentModel.ISupportInitialize)pictureOverlay).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
+        private PictureBox pictureOverlay;
     }
 }

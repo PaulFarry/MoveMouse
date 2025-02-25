@@ -8,4 +8,35 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Homer\base.png" />
+    <None Remove="Homer\base2.png" />
+    <None Remove="Homer\frame01.png" />
+    <None Remove="Homer\frame02.png" />
+    <None Remove="Homer\frame03.png" />
+    <None Remove="Homer\frame04.png" />
+    <None Remove="Homer\frame05.png" />
+    <None Remove="Homer\frame06.png" />
+    <None Remove="Homer\frame07.png" />
+    <None Remove="Homer\frame08.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Homer\base.png" />
+    <EmbeddedResource Include="Homer\frame01.png" />
+    <EmbeddedResource Include="Homer\frame02.png" />
+    <EmbeddedResource Include="Homer\frame03.png" />
+    <EmbeddedResource Include="Homer\frame04.png" />
+    <EmbeddedResource Include="Homer\frame05.png" />
+    <EmbeddedResource Include="Homer\frame06.png" />
+    <EmbeddedResource Include="Homer\frame07.png" />
+    <EmbeddedResource Include="Homer\frame08.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
